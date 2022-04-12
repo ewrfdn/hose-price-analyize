@@ -1,16 +1,29 @@
 const xlsx = require('node-xlsx');
 const fs = require('fs')
 const path = require('path')
+const qs=require('qs')
 const { createInstance } = require('./request.js');
+const fetch = require('node-fetch')
 const getAction = async (url, options) => {
   try {
-    const request = await createInstance().get(url, { params: options })
+    const request = await createInstance('',{"Content-Type": "application/javascript;charset=utf-8"}).get(url, { params: options })
     return request.data
 
   } catch (e) {
     throw new Error(e)
   }
 }
+// const getAction = async (url, options) => {
+//   try {
+//     let response = await fetch(url + '?' + qs.stringify(options))
+//     response=await response.text()
+//     // const request = await createInstance('',{"Content-Type": "application/javascript;charset=utf-8"}).get(url, { params: options })
+//     return response
+
+//   } catch (e) {
+//     throw new Error(e)
+//   }
+// }
 const sleep = (interval) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -209,20 +222,24 @@ const getMapData = (name) => {
 }
 const getRangeByName = (params) => {
   let { name, x, y, range } = params
-  x = parseFloat(x).toFixed(2)
-  y = parseFloat(y).toFixed(2)
+  x = parseFloat(x)
+  y = parseFloat(y)
   range = parseInt(range)
   return getAction('https://api.map.baidu.com', {
-    seckey: '322s2tW+KOCRtlNEI7QoDgrHyBFio/12KXiWaBAlqpE=,g6RfdT6x9IptsBJfCxRFU0eB9tmB-rXN6KveOFTXrTqjnZB-92193PYnw3aV5-rQZ0Qcl6xDEfHZBg44kIIfHXe8OjMfDSQ9pdB3gCRYHoIux2O_QfVMaNhwIHkmpa-642zAm5HqLjFCZdS7wY4EBMFEi_jQ5LePTHTvyGsP1B2YrmOIZKDxYbSj2ghz-MIV',
+    seckey:'5ftYYtW2kFkjk7exrfY+0Bq8RgfYJ2hAxoW/8+6uXFE=,zW1UUT_5xO1JD_0yD7wJ205hFVZOfRqF3OSlGwlFFbvoPnWfAYlietr60t7plnpbgYXwWDjwdIC70N8TQaxHvxHjF3P0XTcPWnxcmPSKrzPNGXyrcGIwrBNkzinWn-xhhh955slpa7tI6Ws87ZxvpWEUD36wVSB0lSCV9JkGoba7CgYum6hOvt2_Be-zpz8x',
     fromproduct: 'jsapi',
     ie: 'utf-8',
     wd: name,
     ak: 'dASz7ubuSpHidP1oQWKuAK3q',
-    ar: `${x - range},${y - range};${x + range},${y + range}`,
-    c: '315',
+    ar: `(${x - range},${y - range};${x + range},${y + range})`,
+    // ar:'(13465361.69,3657787.93;13469361.67,3661787.83)',
+    c: 315,
     qt: 'bd',
     rn: 10,
-    i: 18,
+    res:'api',
+    v: 2.1,
+    oue:1,
+    l: 18,
   })
 }
 module.exports = {

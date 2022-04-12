@@ -6,6 +6,7 @@ const {
   getRangeByName,
   sleep
 } = require('./utils')
+const _ =require('lodash')
 const fs = require('fs-extra')
 
 const tagList = [
@@ -23,6 +24,7 @@ function getLocation(config){
     return null
   }
   const item = content[0] 
+  return _.get(item,['ext','detail_info', 'point'])
 }
 const run = async () => {
 
@@ -37,23 +39,49 @@ const run = async () => {
   }
   // for (const item of dataSource) {
   const item = dataSource[0]
-  if (!resMap[item['小区名称']]) {
-    let res = await getMapData(item['小区名称'])
-    res = JSON.parse(res)
-    resMap[item['小区名称']] = res
+  // if (!resMap[item['小区名称']]) {
+  let res = await getMapData(item['小区名称'])
+  eval('res='+res)
+  resMap[item['小区名称']] = res
     fs.writeFileSync('./mapRes/communityLocation.json', JSON.stringify(resMap))
     const locationMap = {}
     for (const tag of tagList) {
-      locationMap[tag] = {}
-      for (const childTag of tag.list) {
-        // let res = await getRangeByName({ name:})
-        // locationMap[tag][childTag] = 
+      const position = getLocation(res)
+      if (position) {
+        locationMap[tag.tag] = {}
+        for (const childTag of tag.list) {
+          let res1 = await getRangeByName({ name: childTag, ...position, range: 4000 })
+          // eval('res1='+res1)
+          locationMap[tag.tag][childTag] = _.get(res1,'content')
+        }
+        fs.writeJSONSync(`./mapRes/locationData/${item['小区名称']}.json`,locationMap)
+        await sleep(1000)
       }
+     
     }
 
-    await sleep(1000)
-  }
   // }
-  await writeToExcel({ sheets, path: "./processResult/group.xlsx" })
+  // }
+  // await writeToExcel({ sheets, path: "./processResult/group.xlsx" })
 }
 run()
+
+function transSpecialChar(pageStr) {
+  if (pageStr != undefined && pageStr != "" && pageStr != 'null') {
+      pageStr = pageStr.replace(/\r/g, "\\r");
+      pageStr = pageStr.replace(/\n/g, "\\n");
+      pageStr = pageStr.replace(/\t/g, "\\t");
+      pageStr = pageStr.replace(/\\/g, "\\\\");
+      pageStr = pageStr.replace(/"\[{/g, "[{");
+      pageStr = pageStr.replace(/}]"/g, "}]");
+      // pageStr = pageStr.replace(/("")+/g, '"');
+      pageStr = pageStr.replace(/"{"/g, "{\"");
+      pageStr = pageStr.replace(/"}"/g, "\"}");
+      pageStr = pageStr.replace(/}}"/g, "}}");
+      pageStr = pageStr.replace(/\'/g, "&#39;");
+      pageStr = pageStr.replace(/ /g, "&nbsp;");
+      pageStr = pageStr.replace(/</g, "$lt;");
+      pageStr = pageStr.replace(/>/g, "$gt;");
+  }
+  return pageStr;
+}
