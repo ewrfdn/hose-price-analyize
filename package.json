@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.26.1",
+    "fs-extra": "^10.0.1",
     "loadash": "^1.0.0",
     "lodash": "^4.17.21",
     "node-xlsx": "^0.21.0",
